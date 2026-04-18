@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI212 — Real-Time Object Detection System | IIT Ropar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Source+Code+Pro:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper:    #ffffff;
+      --cream:    #f9f8f5;
+      --ink:      #111111;
+      --dark:     #333333;
+      --mid:      #555555;
+      --faint:    #999999;
+      --rule:     #cccccc;
+      --rule-lt:  #e2e2e2;
+
+      --blue:     #1d4ed8;
+      --blue-bg:  #e8eefb;
+      --green:    #16713a;
+      --green-bg: #e3f5ea;
+      --orange:   #b45309;
+      --orange-bg:#fef3e2;
+      --purple:   #6d28d9;
+      --purple-bg:#f0e8fc;
+      --teal:     #0d7377;
+      --teal-bg:  #e0f5f5;
+      --red:      #b91c1c;
+      --red-bg:   #fde8e8;
+      --iit:      #1e3a8a;
+
+      --body: 'EB Garamond', 'Palatino Linotype', Georgia, serif;
+      --head: 'Libre Baskerville', 'Times New Roman', serif;
+      --mono: 'Source Code Pro', 'Courier New', monospace;
+      --max-w: 820px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 17px; }
+    body {
+      font-family: var(--body);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--cream); }
+    ::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+
+    /* ══ LAYOUT ══ */
+    .wrap {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    /* ══ NAV ══ */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: var(--paper);
+      border-bottom: 1.5px solid var(--ink);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; height: 44px;
+    }
+    .nav-left {
+      font-family: var(--head); font-size: 11.5px; font-style: italic;
+      color: var(--mid);
+    }
+    .nav-links { display: flex; align-items: center; gap: 0; }
+    .nav-links a {
+      text-decoration: none; font-family: var(--head);
+      font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--mid); padding: 12px 14px;
+      border-left: 1px solid var(--rule);
+      transition: background .12s, color .12s;
+    }
+    .nav-links a:hover { background: var(--cream); color: var(--ink); }
+
+    /* ══ TITLE PAGE ══ */
+    .titlepage {
+      padding: 90px 0 48px;
+      text-align: center;
+      border-bottom: 1.5px solid var(--ink);
+      margin-bottom: 36px;
+    }
+    .tp-logo {
+      width: 80px; height: 80px; object-fit: contain;
+      margin-bottom: 18px;
+    }
+    .tp-inst {
+      font-family: var(--head); font-size: 12px;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--iit); margin-bottom: 4px;
+    }
+    .tp-course {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--faint); margin-bottom: 32px;
+    }
+    .tp-title {
+      font-family: var(--head); font-size: 26px; font-weight: 700;
+      line-height: 1.3; color: var(--ink); margin-bottom: 8px;
+    }
+    .tp-subtitle {
+      font-size: 15.5px; font-style: italic; color: var(--mid);
+      margin-bottom: 32px;
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+    .tp-authors {
+      display: flex; justify-content: center; gap: 56px;
+      margin-bottom: 28px; flex-wrap: wrap;
+    }
+    .tp-author-name { font-family: var(--head); font-size: 14px; font-weight: 700; }
+    .tp-author-roll { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 2px; }
+    .tp-date { font-family: var(--head); font-size: 12.5px; color: var(--mid); }
+
+    /* ══ SECTION HEADINGS ══ */
+    .sec {
+      margin-top: 48px;
+      margin-bottom: 20px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--ink);
+      font-family: var(--head); font-size: 18px; font-weight: 700;
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .sec-n { color: var(--mid); min-width: 22px; }
+
+    /* ══ BODY TEXT ══ */
+    p { margin-bottom: 14px; text-align: justify; font-size: 16px; line-height: 1.7; }
+    p code, li code {
+      font-family: var(--mono); font-size: 12.5px;
+      background: var(--cream); border: .5px solid var(--rule-lt);
+      padding: 1px 5px; border-radius: 2px;
+    }
+
+    /* ══ FIGURE ══ */
+    .fig {
+      margin: 28px 0;
+      text-align: center;
+    }
+    .fig-inner {
+      border: .75px solid var(--rule);
+      background: var(--cream);
+      padding: 24px 16px;
+      display: inline-block; width: 100%;
+      overflow-x: auto;
+    }
+    .fig-cap {
+      margin-top: 8px;
+      font-family: var(--head); font-size: 12.5px; color: var(--mid);
+    }
+    .fig-cap b { color: var(--ink); }
+
+    /* ══ TECH GRID ══ */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .tech-card {
+      border-radius: 8px; padding: 16px 14px;
+      border: 1.5px solid; transition: transform .15s, box-shadow .15s;
+    }
+    .tech-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+    .tc-name { font-family: var(--head); font-size: 13.5px; font-weight: 700; margin-bottom: 3px; }
+    .tc-ver  { font-family: var(--mono); font-size: 10px; margin-bottom: 6px; }
+    .tc-desc { font-size: 12px; line-height: 1.55; color: var(--dark); }
+
+    /* ══ API CARDS ══ */
+    .api-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      margin: 20px 0;
+    }
+    @media (max-width: 640px) { .api-row { grid-template-columns: 1fr; } }
+    .api-card {
+      border: 1.5px solid; border-radius: 8px; overflow: hidden;
+      background: var(--paper);
+    }
+    .api-head {
+      padding: 10px 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .method {
+      font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+      padding: 2px 8px; border-radius: 4px; letter-spacing: .04em;
+    }
+    .m-post { background: var(--green); color: white; }
+    .m-get  { background: var(--blue);  color: white; }
+    .api-path { font-family: var(--mono); font-size: 12.5px; font-weight: 600; }
+    .api-body { padding: 12px 14px; border-top: 1px solid; }
+    .api-body p { font-size: 13px; margin-bottom: 8px; }
+    .mini-code {
+      font-family: var(--mono); font-size: 11px;
+      background: var(--cream); border-radius: 5px;
+      padding: 10px 12px; line-height: 1.7; overflow-x: auto;
+      white-space: pre; color: var(--dark);
+      margin: 0;
+    }
+    .ck { color: var(--blue); }
+    .cs { color: var(--green); }
+    .cn { color: var(--orange); }
+    .cc { color: var(--faint); font-style: italic; }
+
+    /* ══ PIPELINE ══ */
+    .pipe-grid {
+      display: flex; flex-direction: column; gap: 0;
+      margin: 20px 0;
+    }
+    .pipe-step {
+      display: grid; grid-template-columns: 46px 1fr; gap: 0;
+    }
+    .pipe-left { display: flex; flex-direction: column; align-items: center; }
+    .pipe-num {
+      width: 34px; height: 34px; border-radius: 50%; border: 2px solid;
+      font-family: var(--head); font-size: 14px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .pipe-line { width: 2px; flex: 1; margin: 3px 0; }
+    .pipe-step:last-child .pipe-line { display: none; }
+    .pipe-body { padding: 4px 0 22px 16px; }
+    .pipe-tag {
+      font-family: var(--mono); font-size: 9.5px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .1em; margin-bottom: 3px;
+    }
+    .pipe-title { font-family: var(--head); font-size: 14.5px; font-weight: 700; margin-bottom: 3px; }
+    .pipe-desc  { font-size: 13.5px; color: var(--mid); line-height: 1.55; }
+
+    /* ══ SETUP TABS ══ */
+    .tab-bar { display: flex; gap: 0; border: 1px solid var(--ink); margin-top: 18px; }
+    .tab-btn {
+      flex: 1; padding: 7px 16px; font-family: var(--head);
+      font-size: 11.5px; font-weight: 700; letter-spacing: .04em;
+      text-transform: uppercase; cursor: pointer;
+      background: var(--cream); color: var(--mid);
+      border: none; border-right: 1px solid var(--ink);
+      transition: background .12s;
+    }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn.active { background: var(--ink); color: var(--paper); }
+    .tab-btn:hover:not(.active) { background: var(--rule-lt); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .tab-body {
+      border: 1px solid var(--ink); border-top: none;
+      padding: 18px 20px; background: var(--cream);
+    }
+    .setup-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+    .setup-n {
+      width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+      background: var(--ink); color: var(--paper);
+      font-family: var(--head); font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; margin-top: 2px;
+    }
+    .setup-inner { flex: 1; }
+    .setup-label { font-family: var(--head); font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+    .cmd {
+      font-family: var(--mono); font-size: 11.5px;
+      background: var(--paper); border: .75px solid var(--rule);
+      border-radius: 4px; padding: 7px 12px; color: var(--dark);
+      display: flex; align-items: center; gap: 8px;
+      position: relative; margin-bottom: 4px;
+    }
+    .cmd-p { color: var(--faint); user-select: none; }
+    .cmd-copy {
+      position: absolute; right: 8px;
+      background: var(--cream); border: .5px solid var(--rule);
+      font-family: var(--mono); font-size: 9.5px; padding: 2px 7px;
+      border-radius: 3px; cursor: pointer; color: var(--faint);
+      transition: all .12s;
+    }
+    .cmd-copy:hover { color: var(--ink); border-color: var(--mid); }
+
+    /* ══ FOOTER ══ */
+    footer {
+      border-top: 1.5px solid var(--ink);
+      padding: 24px 0;
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: var(--head); font-size: 12px; color: var(--mid);
+      flex-wrap: wrap; gap: 10px; margin-top: 48px;
+    }
+    .foot-right { font-family: var(--mono); font-size: 10px; color: var(--faint); }
+
+    @media (max-width: 640px) {
+      .wrap { padding: 0 16px; }
+      nav { padding: 0 16px; }
+      .tp-authors { gap: 24px; }
+      .tech-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">AI212 — AI Systems Programming Lab, IIT Ropar</div>
+  <div class="nav-links">
+    <a href="#sec-arch">Architecture</a>
+    <a href="#sec-pipe">Pipeline</a>
+    <a href="#sec-tech">Stack</a>
+    <a href="#sec-api">API</a>
+    <a href="#sec-setup">Setup</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- ════ TITLE PAGE ════ -->
+  <div class="titlepage">
+    <img class="tp-logo"
+         src="https://upload.wikimedia.org/wikipedia/en/3/31/Indian_Institute_of_Technology_Ropar_logo.svg"
+         alt="IIT Ropar Logo" />
+    <div class="tp-inst">Indian Institute of Technology Ropar</div>
+    <div class="tp-course">AI212 — AI Systems Programming Laboratory</div>
+    <h1 class="tp-title">Real-Time Object Detection System</h1>
+    <p class="tp-subtitle">YOLOv8, OR-Tools Load Balancing, and Kubernetes Orchestration</p>
+    <div class="tp-authors">
+      <div>
+        <div class="tp-author-name">Nongmaithem Hans Nathanael Gabil Momin</div>
+        <div class="tp-author-roll">2024AIB1011</div>
+      </div>
+      <div>
+        <div class="tp-author-name">Ravikant Sharma</div>
+        <div class="tp-author-roll">2024AIB1013</div>
+      </div>
+    </div>
+    <div class="tp-date">B.Tech Artificial Intelligence</div>
+  </div>
+
+  <!-- ════ 1. ARCHITECTURE ════ -->
+  <h2 class="sec" id="sec-arch"><span class="sec-n">1.</span> System Architecture</h2>
+  <p>
+    The system follows a three-tier design: a <strong>React frontend</strong> captures
+    images and renders detections, an <strong>OR-Tools router</strong> dispatches
+    requests to the least-loaded worker using integer programming, and a pool of
+    <strong>FastAPI workers</strong> each run a singleton YOLOv8m model for GPU inference.
+  </p>
+
+  <!-- Architecture Diagram -->
+  <div class="fig">
+    <div class="fig-inner">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 320" width="100%"
+           style="overflow:visible; display:block; margin:0 auto;">
+        <defs>
+          <marker id="a-b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#1d4ed8"/></marker>
+          <marker id="a-o" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#b45309"/></marker>
+          <marker id="a-g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#16713a"/></marker>
+        </defs>
+
+        <!-- Client Tier background -->
+        <rect x="0" y="36" width="135" height="170" rx="8" fill="#e8eefb" stroke="#1d4ed8" stroke-width="1.2" stroke-dasharray="5,3"/>
+        <text x="68" y="52" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="9" font-weight="700" fill="#1d4ed8" letter-spacing=".08em">CLIENT TIER</text>
+
+        <!-- Router Tier background -->
+        <rect x="192" y="36" width="175" height="170" rx="8" fill="#fef3e2" stroke="#b45309" stroke-width="1.2" stroke-dasharray="5,3"/>
+        <text x="280" y="52" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="9" font-weight="700" fill="#b45309" letter-spacing=".08em">ROUTING TIER</text>
+
+        <!-- Compute Tier background -->
+        <rect x="424" y="20" width="350" height="200" rx="8" fill="#e3f5ea" stroke="#16713a" stroke-width="1.2" stroke-dasharray="5,3"/>
+        <text x="599" y="38" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="9" font-weight="700" fill="#16713a" letter-spacing=".08em">COMPUTE TIER</text>
+
+        <!-- React Frontend -->
+        <rect x="10" y="76" width="115" height="110" rx="6" fill="white" stroke="#1d4ed8" stroke-width="1.5"/>
+        <text x="67" y="108" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="12" font-weight="700" fill="#111">React</text>
+        <text x="67" y="122" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="12" font-weight="700" fill="#111">Frontend</text>
+        <text x="67" y="140" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="8.5" fill="#888">Vite · :5173</text>
+        <text x="67" y="155" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="8.5" fill="#888">Canvas API</text>
+        <text x="67" y="170" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="8.5" fill="#888">getUserMedia</text>
+
+        <!-- Arrow Client → Router -->
+        <line x1="125" y1="130" x2="192" y2="130" stroke="#1d4ed8" stroke-width="1.5" marker-end="url(#a-b)"/>
+        <text x="158" y="123" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="7.5" fill="#1d4ed8" font-weight="600">POST</text>
+        <text x="158" y="142" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="7" fill="#888">/api/detect</text>
+
+        <!-- OR-Tools Router -->
+        <rect x="202" y="72" width="155" height="118" rx="6" fill="white" stroke="#b45309" stroke-width="1.5"/>
+        <text x="280" y="100" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="12" font-weight="700" fill="#111">OR-Tools</text>
+        <text x="280" y="114" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="12" font-weight="700" fill="#111">SCIP Router</text>
+        <text x="280" y="132" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="8.5" fill="#888">FastAPI · :8000</text>
+        <text x="280" y="147" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="8.5" fill="#b45309" font-style="italic">min(max backlog) ILP</text>
+        <text x="280" y="162" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="8" fill="#888">httpx.AsyncClient</text>
+
+        <!-- Arrow Router → Workers -->
+        <line x1="357" y1="130" x2="432" y2="130" stroke="#16713a" stroke-width="1.5" marker-end="url(#a-g)"/>
+        <text x="394" y="123" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="8" fill="#16713a" font-weight="700" font-style="italic">dispatch</text>
+
+        <!-- Worker W1 -->
+        <rect x="440" y="50" width="105" height="66" rx="5" fill="white" stroke="#16713a" stroke-width="1.2"/>
+        <text x="492" y="72" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="10.5" font-weight="700" fill="#111">Worker W1</text>
+        <text x="492" y="85" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="8" fill="#888">:8001</text>
+        <text x="492" y="100" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="7.5" fill="#16713a">YOLOv8m · FP16</text>
+
+        <!-- Worker W2 -->
+        <rect x="560" y="50" width="105" height="66" rx="5" fill="white" stroke="#16713a" stroke-width="1.2"/>
+        <text x="612" y="72" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="10.5" font-weight="700" fill="#111">Worker W2</text>
+        <text x="612" y="85" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="8" fill="#888">:8002</text>
+        <text x="612" y="100" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="7.5" fill="#16713a">YOLOv8m · FP16</text>
+
+        <!-- Worker W3 -->
+        <rect x="440" y="134" width="105" height="66" rx="5" fill="white" stroke="#16713a" stroke-width="1.2"/>
+        <text x="492" y="156" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="10.5" font-weight="700" fill="#111">Worker W3</text>
+        <text x="492" y="169" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="8" fill="#888">:8003</text>
+        <text x="492" y="184" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="7.5" fill="#16713a">YOLOv8m · FP16</text>
+
+        <!-- Worker W4 -->
+        <rect x="560" y="134" width="105" height="66" rx="5" fill="white" stroke="#16713a" stroke-width="1.2"/>
+        <text x="612" y="156" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="10.5" font-weight="700" fill="#111">Worker W4</text>
+        <text x="612" y="169" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="8" fill="#888">:8004</text>
+        <text x="612" y="184" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="7.5" fill="#16713a">YOLOv8m · FP16</text>
+
+        <!-- Infrastructure bar -->
+        <rect x="0" y="240" width="780" height="70" rx="6" fill="#f0e8fc" stroke="#6d28d9" stroke-width="1" stroke-dasharray="5,3"/>
+        <text x="390" y="255" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="9" font-weight="700" fill="#6d28d9" letter-spacing=".08em">INFRASTRUCTURE</text>
+
+        <rect x="14" y="264" width="120" height="36" rx="5" fill="white" stroke="#6d28d9" stroke-width=".8"/>
+        <text x="74" y="279" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="9.5" font-weight="700" fill="#111">Docker Compose</text>
+        <text x="74" y="293" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="7.5" fill="#888">Multi-stage builds</text>
+
+        <rect x="148" y="264" width="120" height="36" rx="5" fill="white" stroke="#6d28d9" stroke-width=".8"/>
+        <text x="208" y="279" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="9.5" font-weight="700" fill="#111">Kubernetes</text>
+        <text x="208" y="293" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="7.5" fill="#888">Minikube · KubeRay</text>
+
+        <rect x="282" y="264" width="128" height="36" rx="5" fill="white" stroke="#6d28d9" stroke-width=".8"/>
+        <text x="346" y="279" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="9.5" font-weight="700" fill="#111">PVC Weights</text>
+        <text x="346" y="293" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="7.5" fill="#888">yolov8m.pt · 5Gi</text>
+
+        <rect x="424" y="264" width="128" height="36" rx="5" fill="white" stroke="#6d28d9" stroke-width=".8"/>
+        <text x="488" y="279" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="9.5" font-weight="700" fill="#111">CUDA / FP16</text>
+        <text x="488" y="293" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="7.5" fill="#888">Tensor Cores</text>
+
+        <rect x="566" y="264" width="120" height="36" rx="5" fill="white" stroke="#6d28d9" stroke-width=".8"/>
+        <text x="626" y="279" text-anchor="middle" font-family="'Libre Baskerville',serif" font-size="9.5" font-weight="700" fill="#111">Nginx</text>
+        <text x="626" y="293" text-anchor="middle" font-family="'Source Code Pro',monospace" font-size="7.5" fill="#888">Reverse proxy</text>
+
+      </svg>
+    </div>
+    <div class="fig-cap"><b>Figure 1.</b> Three-tier system architecture with OR-Tools load-balanced worker pool.</div>
+  </div>
+
+  <!-- ════ 2. PIPELINE ════ -->
+  <h2 class="sec" id="sec-pipe"><span class="sec-n">2.</span> Detection Pipeline</h2>
+  <p>Each detection request flows through five stages:</p>
+
+  <div class="pipe-grid">
+    <div class="pipe-step">
+      <div class="pipe-left">
+        <div class="pipe-num" style="background:var(--blue-bg); color:var(--blue); border-color:var(--blue);">1</div>
+        <div class="pipe-line" style="background:linear-gradient(var(--blue),var(--orange));"></div>
+      </div>
+      <div class="pipe-body">
+        <div class="pipe-tag" style="color:var(--blue);">React Frontend</div>
+        <div class="pipe-title">Frame capture and upload</div>
+        <div class="pipe-desc">Browser encodes webcam/upload as JPEG, sends <code>multipart/form-data</code> POST.</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-left">
+        <div class="pipe-num" style="background:var(--orange-bg); color:var(--orange); border-color:var(--orange);">2</div>
+        <div class="pipe-line" style="background:linear-gradient(var(--orange),var(--green));"></div>
+      </div>
+      <div class="pipe-body">
+        <div class="pipe-tag" style="color:var(--orange);">OR-Tools Router &middot; :8000</div>
+        <div class="pipe-title">ILP-based load balancing</div>
+        <div class="pipe-desc">Solves a min-bottleneck ILP to route the request to the worker with the smallest backlog.</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-left">
+        <div class="pipe-num" style="background:var(--green-bg); color:var(--green); border-color:var(--green);">3</div>
+        <div class="pipe-line" style="background:linear-gradient(var(--green),var(--purple));"></div>
+      </div>
+      <div class="pipe-body">
+        <div class="pipe-tag" style="color:var(--green);">FastAPI Worker &middot; asyncio</div>
+        <div class="pipe-title">Non-blocking inference dispatch</div>
+        <div class="pipe-desc">Worker offloads inference via <code>asyncio.to_thread()</code>, keeping the event loop free.</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-left">
+        <div class="pipe-num" style="background:var(--purple-bg); color:var(--purple); border-color:var(--purple);">4</div>
+        <div class="pipe-line" style="background:linear-gradient(var(--purple),var(--blue));"></div>
+      </div>
+      <div class="pipe-body">
+        <div class="pipe-tag" style="color:var(--purple);">YOLOv8m &middot; CUDA &middot; FP16</div>
+        <div class="pipe-title">GPU inference</div>
+        <div class="pipe-desc">Singleton model runs in half-precision on RTX hardware. Returns bounding boxes and labels.</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-left">
+        <div class="pipe-num" style="background:var(--blue-bg); color:var(--blue); border-color:var(--blue);">5</div>
+      </div>
+      <div class="pipe-body">
+        <div class="pipe-tag" style="color:var(--blue);">Canvas Renderer</div>
+        <div class="pipe-title">Results rendered on dashboard</div>
+        <div class="pipe-desc">Bounding boxes drawn over the video feed. Latency and stats update in real time.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ 3. TECH STACK ════ -->
+  <h2 class="sec" id="sec-tech"><span class="sec-n">3.</span> Technology Stack</h2>
+
+  <div class="tech-grid">
+    <div class="tech-card" style="background:var(--blue-bg); border-color:var(--blue);">
+      <div class="tc-name" style="color:var(--blue);">React + Vite</div>
+      <div class="tc-ver" style="color:var(--blue);">React 19 &middot; Vite 8</div>
+      <div class="tc-desc">Webcam dashboard, bounding-box canvas, analytics panel.</div>
+    </div>
+    <div class="tech-card" style="background:var(--green-bg); border-color:var(--green);">
+      <div class="tc-name" style="color:var(--green);">FastAPI</div>
+      <div class="tc-ver" style="color:var(--green);">&ge; 0.115 &middot; Python 3.11</div>
+      <div class="tc-desc">Async web framework powering router and workers.</div>
+    </div>
+    <div class="tech-card" style="background:var(--purple-bg); border-color:var(--purple);">
+      <div class="tc-name" style="color:var(--purple);">YOLOv8m</div>
+      <div class="tc-ver" style="color:var(--purple);">Ultralytics &ge; 8.3</div>
+      <div class="tc-desc">Real-time object detection, 80 COCO classes, FP16.</div>
+    </div>
+    <div class="tech-card" style="background:var(--orange-bg); border-color:var(--orange);">
+      <div class="tc-name" style="color:var(--orange);">OR-Tools (SCIP)</div>
+      <div class="tc-ver" style="color:var(--orange);">&ge; 9.10</div>
+      <div class="tc-desc">ILP solver for dynamic min-bottleneck worker assignment.</div>
+    </div>
+    <div class="tech-card" style="background:var(--red-bg); border-color:var(--red);">
+      <div class="tc-name" style="color:var(--red);">Docker</div>
+      <div class="tc-ver" style="color:var(--red);">Compose v3.8</div>
+      <div class="tc-desc">Multi-stage builds, named volumes, full orchestration.</div>
+    </div>
+    <div class="tech-card" style="background:var(--teal-bg); border-color:var(--teal);">
+      <div class="tc-name" style="color:var(--teal);">Kubernetes</div>
+      <div class="tc-ver" style="color:var(--teal);">Minikube &middot; KubeRay</div>
+      <div class="tc-desc">Deployment manifests, LoadBalancer, 5Gi PVC weights.</div>
+    </div>
+    <div class="tech-card" style="background:var(--green-bg); border-color:var(--green);">
+      <div class="tc-name" style="color:var(--green);">CUDA + FP16</div>
+      <div class="tc-ver" style="color:var(--green);">CC &ge; 7.0</div>
+      <div class="tc-desc">Half-precision Tensor Core inference, 2&times; throughput.</div>
+    </div>
+    <div class="tech-card" style="background:var(--orange-bg); border-color:var(--orange);">
+      <div class="tc-name" style="color:var(--orange);">Nginx</div>
+      <div class="tc-ver" style="color:var(--orange);">Alpine</div>
+      <div class="tc-desc">Serves React build, reverse-proxies <code>/api/</code>.</div>
+    </div>
+  </div>
+
+  <!-- ════ 4. API ════ -->
+  <h2 class="sec" id="sec-api"><span class="sec-n">4.</span> REST API</h2>
+
+  <div class="api-row">
+    <div class="api-card" style="border-color:var(--green);">
+      <div class="api-head" style="background:var(--green-bg);">
+        <span class="method m-post">POST</span>
+        <span class="api-path" style="color:var(--green);">/api/detect</span>
+      </div>
+      <div class="api-body" style="border-color:var(--green-bg);">
+        <p>Upload an image, receive detections with bounding boxes and latency.</p>
+<pre class="mini-code">{
+  <span class="ck">"latency_ms"</span>: <span class="cn">38.2</span>,
+  <span class="ck">"detections"</span>: [{
+    <span class="ck">"label"</span>: <span class="cs">"person"</span>,
+    <span class="ck">"confidence"</span>: <span class="cn">0.92</span>,
+    <span class="ck">"bbox"</span>: [<span class="cn">120</span>, <span class="cn">45</span>, <span class="cn">188</span>, <span class="cn">410</span>]
+  }]
+}</pre>
+      </div>
+    </div>
+    <div class="api-card" style="border-color:var(--blue);">
+      <div class="api-head" style="background:var(--blue-bg);">
+        <span class="method m-get">GET</span>
+        <span class="api-path" style="color:var(--blue);">/api/health</span>
+      </div>
+      <div class="api-body" style="border-color:var(--blue-bg);">
+        <p>Live CPU and memory metrics. Polled every 5s by the analytics panel.</p>
+<pre class="mini-code">{
+  <span class="ck">"cpu_percent"</span>: <span class="cn">24.5</span>,
+  <span class="ck">"mem_used_gb"</span>: <span class="cn">3.78</span>,
+  <span class="ck">"mem_total_gb"</span>: <span class="cn">15.86</span>,
+  <span class="ck">"status"</span>: <span class="cs">"ok"</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ 5. SETUP ════ -->
+  <h2 class="sec" id="sec-setup"><span class="sec-n">5.</span> Installation</h2>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" id="btn-native" onclick="switchTab('native')">Native (Recommended)</button>
+    <button class="tab-btn" id="btn-docker" onclick="switchTab('docker')">Docker Compose</button>
+    <button class="tab-btn" id="btn-k8s" onclick="switchTab('k8s')">Kubernetes</button>
+  </div>
+
+  <!-- Native -->
+  <div class="tab-panel active tab-body" id="panel-native">
+    <div class="setup-row"><div class="setup-n">1</div><div class="setup-inner"><div class="setup-label">Install backend dependencies</div><div class="cmd"><span class="cmd-p">$</span><span>cd backend &amp;&amp; pip install -r requirements.txt</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div></div></div>
+    <div class="setup-row"><div class="setup-n">2</div><div class="setup-inner"><div class="setup-label">Start FastAPI backend</div><div class="cmd"><span class="cmd-p">$</span><span>python -m uvicorn main:app --port 8000 --reload</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div></div></div>
+    <div class="setup-row"><div class="setup-n">3</div><div class="setup-inner"><div class="setup-label">Install frontend and start Vite</div><div class="cmd"><span class="cmd-p">$</span><span>cd frontend &amp;&amp; npm install &amp;&amp; npm run dev</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div></div></div>
+    <div class="setup-row"><div class="setup-n">4</div><div class="setup-inner"><div class="setup-label">Open the dashboard</div><div class="cmd"><span class="cmd-p">&rarr;</span><span>http://localhost:5173</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div></div></div>
+  </div>
+
+  <!-- Docker -->
+  <div class="tab-panel tab-body" id="panel-docker">
+    <div class="setup-row"><div class="setup-n">1</div><div class="setup-inner"><div class="setup-label">Build and start all services</div><div class="cmd"><span class="cmd-p">$</span><span>docker compose up --build</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div></div></div>
+    <div class="setup-row"><div class="setup-n">2</div><div class="setup-inner"><div class="setup-label">Open the dashboard</div><div class="cmd"><span class="cmd-p">&rarr;</span><span>http://localhost:5173</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div></div></div>
+    <div class="setup-row"><div class="setup-n">3</div><div class="setup-inner"><div class="setup-label">Stop all services</div><div class="cmd"><span class="cmd-p">$</span><span>docker compose down</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div></div></div>
+  </div>
+
+  <!-- K8s -->
+  <div class="tab-panel tab-body" id="panel-k8s">
+    <div class="setup-row"><div class="setup-n">1</div><div class="setup-inner"><div class="setup-label">Start Minikube</div><div class="cmd"><span class="cmd-p">$</span><span>minikube start</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div></div></div>
+    <div class="setup-row"><div class="setup-n">2</div><div class="setup-inner"><div class="setup-label">Build images inside Minikube</div><div class="cmd"><span class="cmd-p">$</span><span>minikube docker-env | Invoke-Expression</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div><div class="cmd"><span class="cmd-p">$</span><span>docker build -t ai212project-backend:latest ./backend</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div><div class="cmd"><span class="cmd-p">$</span><span>docker build -t ai212project-frontend:latest ./frontend</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div></div></div>
+    <div class="setup-row"><div class="setup-n">3</div><div class="setup-inner"><div class="setup-label">Apply manifests</div><div class="cmd"><span class="cmd-p">$</span><span>kubectl apply -f k8s/</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div><div class="cmd"><span class="cmd-p">$</span><span>kubectl wait --for=condition=ready pod --all --timeout=300s</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div></div></div>
+    <div class="setup-row"><div class="setup-n">4</div><div class="setup-inner"><div class="setup-label">Open the frontend</div><div class="cmd"><span class="cmd-p">$</span><span>minikube service frontend</span><button class="cmd-copy" onclick="copyCmd(this)">copy</button></div></div></div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <em>AI212 — AI Systems Programming Lab</em><br>
+      Indian Institute of Technology Ropar &middot; B.Tech AI &middot; 2025
+    </div>
+    <div class="foot-right">Hans (2024AIB1011) &amp; Ravikant (2024AIB1013)</div>
+  </footer>
+
+</div><!-- /.wrap -->
+
+<script>
+  function switchTab(name) {
+    ['native','docker','k8s'].forEach(t => {
+      document.getElementById('panel-' + t).classList.remove('active')
+      document.getElementById('btn-'   + t).classList.remove('active')
+    })
+    document.getElementById('panel-' + name).classList.add('active')
+    document.getElementById('btn-'   + name).classList.add('active')
+  }
+
+  function copyCmd(btn) {
+    const spans = btn.parentElement.querySelectorAll('span')
+    const text  = (spans[1] || spans[0]).textContent.trim()
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'done'; setTimeout(() => btn.textContent = 'copy', 1400)
+    }).catch(() => {})
+  }
+
+  const navLinks = document.querySelectorAll('.nav-links a')
+  window.addEventListener('scroll', () => {
+    let cur = ''
+    document.querySelectorAll('[id]').forEach(el => {
+      if (window.scrollY >= el.offsetTop - 100) cur = el.id
+    })
+    navLinks.forEach(a => {
+      const active = a.getAttribute('href') === '#' + cur
+      a.style.background = active ? 'var(--cream)' : ''
+      a.style.color      = active ? 'var(--ink)'   : ''
+    })
+  }, { passive: true })
+</script>
+</body>
+</html>
