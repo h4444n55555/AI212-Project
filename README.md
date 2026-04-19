@@ -8,6 +8,17 @@ Full-stack object detection app with:
 
 This README is written from a tested run on Windows (April 18, 2026).
 
+---
+
+## 👥 Team Members
+| Name | Entry No. | GitHub |
+|------|-----------|--------|
+| **Nongmaithem Hans Nathanael Gabil Momin** | 2024AIB1011 | https://github.com/h4444n55555 |
+| **Ravikant Sharma** | 2024AIB1013 | https://github.com/thyravikant |
+
+---
+
+
 ## Project Structure
 
 - `frontend/`: React dashboard
