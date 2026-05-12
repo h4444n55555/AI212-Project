@@ -5,6 +5,7 @@ Full-stack object detection app with:
 - Frontend: React + Vite
 - Backend: FastAPI + Ultralytics YOLOv8
 - Router: OR-Tools-based request routing across 4 backend worker ports
+- Ray support: optional distributed worker layer for Python 3.11/3.12 environments
 
 This README is written from a tested run on Windows (April 18, 2026).
 
@@ -59,14 +60,21 @@ docker compose down -v
 Use this if you want easier debugging in VS Code.
 
 ### Prerequisites
-
-- Python 3.11+
+- Python 3.14 works for the HTTP fallback path (router will use HTTP workers)
+- Python 3.11 or 3.12 is required if you want Ray enabled locally (recommended for Ray)
+	- Use the helper scripts in `backend/` to create a 3.11 virtualenv and install packages.
+		- Windows (PowerShell): `backend\setup_py311.ps1`
+		- Linux / WSL: `backend/setup_py311.sh`
 - Node.js 20+
 
 ### Terminal 1: Start backend cluster
 
 ```powershell
 cd backend
+# If you created a Python 3.11 venv and want Ray enabled, activate it first.
+# PowerShell (3.11):
+#   .\\venv311\\Scripts\\Activate.ps1
+# Then run the start wrapper:
 ./start.bat
 ```
 
@@ -74,6 +82,7 @@ This starts:
 
 - Worker APIs on ports `8001`, `8002`, `8003`, `8004`
 - Router API on port `8000`
+- Ray is optional; if your local Python is not 3.11/3.12, the router keeps using the HTTP worker path
 
 Health check:
 

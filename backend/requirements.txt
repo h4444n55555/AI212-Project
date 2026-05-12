@@ -7,6 +7,13 @@ python-multipart>=0.0.9      # required for file uploads in FastAPI
 ultralytics>=8.3.0            # YOLOv8 — auto-downloads yolov8n.pt on first run
 pillow>=10.0.0
 
+# ── Distributed Computing ───────────────────────────────────────────────────
+# Ray (optional): requires Python 3.8-3.12. Install separately in a
+# Python 3.11/3.12 environment if you want the distributed actor path.
+# Example (optional):
+#   py -3.11 -m pip install "ray[default]>=2.0.0,<3.0.0"
+# For now, the Ray actor definitions are included but optional
+
 # ── System metrics ───────────────────────────────────────────────────────────
 psutil>=5.9.0
 ortools>=9.10.0
